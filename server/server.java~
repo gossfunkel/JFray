@@ -1,0 +1,200 @@
+/*
+GUI libs:
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+*/
+
+import java.io.*;
+import java.lang.*;
+import java.net.*;
+import java.util.*;
+import javax.crypto.*;
+
+public class server0_0_1 {
+
+// printing log:
+
+	public void printLog(String data) {
+		data = data + "\n";
+		FileOutputStream log;
+		PrintStream p;
+		try {
+			log = new FileOutputStream("log.sfra");
+			p = new PrintStream(log);
+			p.println(data);
+			p.close();
+		}
+		catch (Exception e) {
+			System.err.println ("WriteError: log: " + e);
+		}
+	}
+	
+// SECURITY:
+	//public void encryptUsers() {
+		
+	//}
+	
+	//public void decryptUsers() {
+		
+	//}
+
+	public void loginToServer() {
+		char [] passwd = c.readPassword("Password: ");
+		//decryptPass();
+		pass = new FileInputStream("pass.sfra");
+    	DataInputStream dis = new DataInputStream(pass);
+		BufferedReader br = new BufferedReader(new InputStreamReader(dis));
+    	String passdat = br.readLine();
+    	//encryptPass();
+		char [] Passwd = passdat.toCharArray();
+    	if (Arrays.equals(passwd,Passwd)) {
+    		System.out.println("Logged in.");
+    		return 1;
+    	}
+    	else {
+    		System.out.println("login failed.");
+    		System.exit(2);
+    	}
+	}
+	
+// logins:
+	
+	public String createNewServer() {
+		String servName = c.readLine("Please enter a name for the server: ");
+		char [] passwd = c.readPassword("Please enter desired password: ");
+    	char [] passwd2 = c.readPassword("Please re-enter password: ");
+    	if (Arrays.equals(passwd, passwd2)) {
+    		try {
+    			File log = new File("log.sfra");
+    			log.createNewFile();
+    			FileOutputStream logStream;
+				PrintStream p;
+				logStream = new FileOutputStream("log.fra");
+				p = new PrintStream(logStream);
+				//p.println("CREATED " + getDateInstance() + " " + os.name ".\n");
+				p.close();
+    		}
+    		catch (Exception e) {
+    			System.err.println("Could not create log file.");
+    			System.exit(1);
+    		}
+    		try {
+    			File pass = new File("pass.sfra");
+    			pass.createNewFile();
+    		}
+    		catch (Exception e) {
+    			System.err.println("Could not create password file.");
+    			System.exit(1);
+    		}
+    	}
+    }
+	
+// Socket:
+
+	public void runServer() {
+		try{
+			server = new ServerSocket(1042); 
+		}
+		catch (IOException e) {
+			printLog("LISTEN FAIL on 1042: " + e);
+			System.err.println("Could not listen on port 1042.");
+			System.exit(-1);
+		}
+		try{
+			client = server.accept();
+		}
+		catch (IOException e) {
+			printLog("ACCEPT FAIL on 1042: " + e);
+			System.err.println("Accept failed: 1042");
+			System.exit(-1);
+		}
+		try{
+			inComing = new BufferedReader(new InputStreamReader(client.getInputStream()));
+			outGoing = new PrintWriter(client.getOutputStream(), true);
+		}
+		catch (IOException e) {
+			printLog("READ FAIL on 1042: " + e);
+			System.err.println("Read failed");
+			System.exit(-1);
+		}
+		while(true){
+			try{
+				clientData = inComing.readLine();
+				processingUnit(clientData, client);
+				out.writeUTF("Thank you for connecting to " + server.getLocalSocketAddress() + "\nGoodbye!");
+			}
+			catch (IOException e) {
+			printLog("READ FAIL on 1042: " + e);
+				System.out.println("Read failed");
+				System.exit(-1);
+			}
+		}
+	}
+	
+// log in/out:
+/*
+	public boolean logInClient(LOGIusername) {
+		username = LOGIusername.substring(3, -1);
+		System.out.println(username + " has logged in.")
+		return 1;
+	}
+	
+// main gaming processing:
+
+	public String processingUnit(inData, client) {
+		String mainVal = clientData.substring(0,3);
+		if (mainVal == "LOGI") {
+			if (logInClient(inData)) {
+				// logged in
+			}
+		}
+	}*/
+	
+// main method:
+	
+	public void server0_0_1() throws FileNotFoundException, IOException {
+		FileInputStream in = null;
+		FileOutputStream out = null;
+		c = System.console();
+		if (c == null) {
+			System.err.println("No console.");
+			System.exit(1);
+		}
+		newserver = file.exists(datadirectory);
+		if (newserver) {
+			servName = createNewServer();
+		}
+		File datadirectory =new File("log.sfra");
+		if log.exists()) {
+        	System.out.println("Logfile exists.");
+        }
+        else {
+    		log.createNewFile();
+    		FileOutputStream logStream;
+			PrintStream p;
+			logStream = new FileOutputStream("log.fra");
+			p = new PrintStream(users);
+			p.println("CREATED " + getDateInstance() + " " + os.name ".\n");
+		p.close();
+    	}
+    	loginToServer();
+		runServer();
+		
+	}
+	
+// Constructor:
+	
+	public static void main(String args[]) throws FileNotFoundException, IOException 	{
+		new server0_0_1();
+	}
+	
+// Variables:
+	
+	private Console c;
+	private FileOutputStream out;
+	private FileInputStream in;
+	private FileInputStream logIn;
+	private String logString;
+	private String newusr;
+}

@@ -1,0 +1,223 @@
+/*
+GUI libs:
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+*/
+
+import java.io.*;
+import java.lang.*;
+import java.net.*;
+import java.util.*;
+import javax.crypto.*;
+import java.security.*;
+import java.text.DateFormat;
+
+public class client0_0_2 {
+	
+// printing log:
+
+	public void printLog(String data) {
+		data = data + "\n";
+		FileOutputStream log;
+		PrintStream p;
+		try {
+			log = new FileOutputStream("log.fra");
+			p = new PrintStream(log);
+			p.println(data);
+			p.close();
+		}
+		catch (Exception e) {
+			System.err.println ("WriteError: log: " + e);
+		}
+	}
+	
+// logins:
+	
+	public String createNewUser() {
+		String usnm = c.readLine("Please enter desired username: ");
+    	char [] passwd = c.readPassword("Please enter desired password: ");
+    	char [] passwd2 = c.readPassword("Please re-enter password: ");
+    	if (Arrays.equals(passwd, passwd2)) {
+	    	String password = new String(passwd);
+			String hashedPass = BCrypt.hashpw(password, BCrypt.gensalt());
+	    	String data = usnm + ":" + hashedPass + "-\n";
+    		FileOutputStream users;
+			PrintStream p;
+			try {
+				users = new FileOutputStream("users.fra");
+				p = new PrintStream(users);
+				p.println(data);
+				p.close();
+			}
+			catch (Exception e) {
+				System.err.println ("WriteError: log");
+			}
+		}
+		else {
+			System.err.println ("Passwords do not match!");
+			System.exit(1);
+		}
+		return usnm;
+	}
+	
+	public String loginToClient() throws FileNotFoundException, IOException {
+		int tries;
+		tries = 5;
+		while (tries > 0) {
+			System.out.println("LOGIN");
+			String usnm = c.readLine("Username: ");
+    		char [] passwd = c.readPassword("Password: ");
+    		String passWd = new String(passwd);
+    		users = new FileInputStream("users.fra");
+    		DataInputStream dis = new DataInputStream(users);
+			BufferedReader br = new BufferedReader(new InputStreamReader(dis));
+    		String logindat = br.readLine();
+    		if (logindat.contains(usnm) == false) {
+    			System.err.println("Username not recognised, please try another or create user.");
+    			usnm = "INV";
+    			return usnm;
+    		}
+    		else {
+    			int startUsnm = logindat.indexOf(usnm);
+    			String logdat = logindat.substring(startUsnm, (logindat.indexOf("-") + 1));
+				int endUsnm = logdat.indexOf(':'); 
+				int startPass = endUsnm + 1;
+				int endPass = logdat.indexOf('-');
+				String Usnm = logdat.substring(0, endUsnm);
+				String Pass = logdat.substring(startPass, endPass);
+				if (usnm.equals(Usnm)) {
+					if (BCrypt.checkpw(passWd, Pass)) {
+						System.out.println ("Logged in. Welcome, " + usnm + ".");
+						String printData = "LOGIN: " + usnm;
+						printLog(printData);
+						return usnm;
+					}
+					else {
+						System.out.println ("Incorrect password, please try again.");
+						String data = "PASWFAIL: " + usnm;
+						printLog(data);
+						tries -= 1;
+					}
+				}
+			}
+		}
+		System.exit(2);
+		return usnm;
+	}
+	
+// Sockets:
+	
+	public void loginToServer(String host, String usnm ) {
+		try {
+			Socket frayClient = new Socket(host,1042);
+			System.out.println ("Connected to host at " + host);
+			logString = ("CONNECTED: " + host);
+         	outGoing = new PrintWriter(frayClient.getOutputStream(), true);
+         	String option = c.readLine("option: ");
+         	if (option.equals("hello")) {
+				outGoing.println("Hello from " + frayClient.getLocalSocketAddress());
+			}
+			else if (option.equals("exit")) {
+				System.out.println("Now leaving server.");
+				outGoing.println("EXIT SERVER LOOP NOW");
+			}
+    	    BufferedReader inFromServer = new BufferedReader(new InputStreamReader(frayClient.getInputStream()));
+    	    //DataInputStream in = new DataInputStream(inFromServer);
+    	    System.out.println("Server says " + inFromServer.readLine());
+    	    frayClient.close();
+		}
+		catch (Exception e) {
+			System.err.println ("Error connecting to host at " + host + ":1042.\n Reason: " + e);
+			logString = ("CONNECT FAILED: " + host + ":1042: " + e);
+		}
+		printLog(logString);
+		// send server usnm and os.name [System.getProperty(os.name)] ?
+	}
+	
+	public static void exitClient() {
+		System.out.println("Client exiting properly");
+	}
+	
+// main method:
+	
+	public void general() throws FileNotFoundException, IOException {
+		FileInputStream in = null;
+        FileOutputStream out = null;
+		c = System.console();
+        if (c == null) {
+            System.err.println("No console.");
+            System.exit(1);
+        }
+		os = System.getProperty("os.name").toLowerCase();
+        try {
+        	File log = new File("log.fra");
+        	if (log.exists()) {
+        		System.out.println("Logfile exists.");
+        	}
+        	else {
+    			log.createNewFile();
+    			FileOutputStream logStream;
+				PrintStream p;
+				logStream = new FileOutputStream("log.fra");
+				p = new PrintStream(logStream);
+				String newLog = "CREATED " + DateFormat.getDateInstance() + os + ". \n";	
+				p.println(newLog);
+				p.close();
+    		}
+    		// decryptUsers();
+        	File users = new File("users.fra");
+    		if (users.exists()) {
+        		System.out.println("Users file exists.");
+        	}
+        	else {
+    			users.createNewFile();
+    		}
+    	}
+    	catch (Exception e) {
+    		System.err.println("Could not access files.");
+    		System.exit(1);
+    	}
+    	while (true) {
+	        newusr = c.readLine("New user? ");
+    	    if (newusr.equals("y")) {
+    	    	usnm = createNewUser();
+    	    	break;
+    	    }
+    	    else {
+				usnm = loginToClient();
+				if (usnm != "INV") {
+					break;
+				}
+			}
+		}
+		host = c.readLine("Enter server address: ");
+		loginToServer(host, usnm);
+		exitClient();
+	}
+	
+	client0_0_2() throws FileNotFoundException, IOException {
+		general();
+	}
+	
+// Constructor:
+	
+	public static void main(String args[]) throws FileNotFoundException, IOException {
+		System.out.println("Startup initiated.");
+		client0_0_2 client = new client0_0_2();
+	}
+	
+// Variables:
+	
+	private String host;
+	private String usnm;
+	private Console c;
+	private String os;
+	private FileOutputStream out;
+	private FileInputStream in;
+	private FileInputStream users;
+	private String logString;
+	private String newusr;
+	private PrintWriter outGoing;
+}
+
